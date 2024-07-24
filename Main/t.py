@@ -1,3 +1,3 @@
 xd = 'Dom'
-xd = xd.strip('Do')
+xd = list(range(100))
 print(xd)
