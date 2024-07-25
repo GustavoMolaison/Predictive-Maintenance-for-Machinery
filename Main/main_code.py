@@ -79,6 +79,16 @@ def time_info():
 
          plt.bar(list(range(100)), breakout_time)
          plt.show()
+
+# time_info()
 # print(df_test1_processed.head())
 # print(df_train1_processed.head())
          
+def rolling_func(df):
+         for i in range (21):
+                    df[f'rolling_mean {i}'] =  df[f'sensor measurement {i}'].rolling(window=5).mean()
+                    df[f'rolling_std {i}'] =  df[f'sensor measurement {i}'].rolling(window=5).std()
+
+         print(df[f'rolling_mean 3'])
+
+rolling_func(df_train1_processed)         
