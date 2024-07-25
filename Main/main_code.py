@@ -85,10 +85,73 @@ def time_info():
 # print(df_train1_processed.head())
          
 def rolling_func(df):
+         df_rol = pd.DataFrame()
+         for i in range (3):
+                 df_rol[f'rolling_mean_oper {i}'] = df[f'operational setting {i}'].rolling(window=5).mean()
+                 df_rol[f'rolling_std_oper {i}'] =  df[f'operational setting {i}'].rolling(window=5).std()
          for i in range (21):
-                    df[f'rolling_mean {i}'] =  df[f'sensor measurement {i}'].rolling(window=5).mean()
-                    df[f'rolling_std {i}'] =  df[f'sensor measurement {i}'].rolling(window=5).std()
+                    df_rol[f'rolling_mean_sensor {i}'] =  df[f'sensor measurement {i}'].rolling(window=5).mean()
+                    df_rol[f'rolling_std_sensor {i}'] =  df[f'sensor measurement {i}'].rolling(window=5).std()
+        #  print(df_rol['rolling_mean_oper 0'])
+         df = pd.concat([df, df_rol], axis = 1)
+        #  print(df['rolling_mean_oper 0'])
+        #  oper_setings = [df['rolling_mean_oper 0'] ,df['rolling_mean_oper 1'], df['rolling_mean_oper 2'] ]
+        #  print(oper_setings)
+         return df
+         
 
-         print(df[f'rolling_mean 3'])
+# rolling_func(df_train1_processed)         
 
-rolling_func(df_train1_processed)         
+def lag_feature(df, lags =[1,2,3]):
+        # for i in range(3):
+        #         df[f'oper_set_lag {i}-1'] = df[f'operational setting {i}'].shift(1)
+        #         df[f'oper_set_lag {i}-2'] = df[f'operational setting {i}'].shift(2) 
+        #         df[f'oper_set_lag {i}-3'] = df[f'operational setting {i}'].shift(3)
+        # for i in range(21):
+        #         df[f'sensor_measure_lag {i}-1'] = df[f'sensor measurement {i}'].shift(1)
+        #         df[f'sensor_measure_lag {i}-2'] = df[f'sensor measurement {i}'].shift(2)  
+        #         df[f'sensor_measure_lag {i}-3'] = df[f'sensor measurement {i}'].shift(3)   
+
+
+
+        # for i in range(3):
+        #    for lag in range (1, lags + 1):
+        #            df[f'oper_set_lag {i}-{lag}'] = df[f'operational setting {i}'].shift(lag)
+        # for i in range(21):
+        #    for lag in range (1, lags + 1):
+        #            df[f'sensor_measure_lag {i}-{lag}'] = df[f'sensor measurement {i}'].shift(lag)   
+        # df.fillna(method = 'bfill', inplace = True)     
+        # 
+        dfs_lags = []
+        for lag in lags:
+                df_lag = pd.DataFrame()
+                for i in range(3):
+                      df_lag[f'oper_set_lag {i}-{lag}'] = df[f'operational setting {i}'].shift(lag)  
+                for i in range(21):
+                      df_lag[f'sensor_measure_lag {i}-{lag}'] = df[f'sensor measurement {i}'].shift(lag)
+                dfs_lags.append(df_lag)
+        lag_featuers_concat = pd.concat(dfs_lags, axis = 1)
+        df = pd.concat([df, lag_featuers_concat], axis = 1)
+
+        df.bfill( inplace = True)         
+        
+        return df
+
+df_train1_processed = lag_feature(df_train1_processed)
+
+
+
+def usage_dur_oper(df):
+#     rolling_func(df)
+    
+    oper_setings = [df['rolling_mean_oper 0'] ,df['rolling_mean_oper 1'], df['rolling_mean_oper 2'] ]
+    df['oper_set_mean*'] = np.mean(oper_setings)
+    sensor_measures = [df['rolling_mean_sensor 0'],df['rolling_mean_sensor 1'], df['rolling_mean_sensor 2'] ]
+    df['sensor_meas_mean*'] = np.mean(sensor_measures)
+    
+    return df
+
+df_train1_processed = rolling_func(df_train1_processed)
+df_train1_processed = usage_dur_oper(df_train1_processed)
+
+print(df_train1_processed.columns)
