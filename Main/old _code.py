@@ -144,17 +144,15 @@ df_train1_processed = lag_feature(df_train1_processed)
 def usage_dur_oper(df):
 #     rolling_func(df)
 
+      df['oper_set_mean*'] = df[['operational setting 0', 'operational setting 1', 'operational setting 2']].mean(axis=1, skipna = True)
+      
 
-#     df_usage = pd.DataFrame()
-#     df_grouped = df.groupby('unit number')[[['time'], ['operational setting 1'],['operational setting 2'],['operational setting 3']]]
-#     df_usage['oper_time_mean'] = df['operational setting 0']
+      
 
-#     print(df_grouped)
-#     return df
+      df['sensor_mer_mean*'] = df[[f'sensor measurement {i}' for i in range (21) ]].mean(axis =1, skipna = True)   
 
-       xd = df.loc[0, ['unit number', 'time', 'operational setting 0', 'operational setting 1',  'operational setting 2']]
-       xdd =  np.mean([xd['operational setting 0'],xd['operational setting 1'],xd['operational setting 2']])
-       print(xdd)
+      return df      
+       
 # df_train1_processed = rolling_func(df_train1_processed)
-usage_dur_oper(df_train1_processed)
+df_train1_processed = usage_dur_oper(df_train1_processed)
 
