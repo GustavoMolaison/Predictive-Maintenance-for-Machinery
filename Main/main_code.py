@@ -100,7 +100,7 @@ def rolling_func(df):
          return df
          
 
-# rolling_func(df_train1_processed)         
+df_train1_processed = rolling_func(df_train1_processed)         
 
 def lag_feature(df, lags =[1,2,3]):
         # for i in range(3):
@@ -143,15 +143,18 @@ df_train1_processed = lag_feature(df_train1_processed)
 
 def usage_dur_oper(df):
 #     rolling_func(df)
-    
-    oper_setings = [df['rolling_mean_oper 0'] ,df['rolling_mean_oper 1'], df['rolling_mean_oper 2'] ]
-    df['oper_set_mean*'] = np.mean(oper_setings)
-    sensor_measures = [df['rolling_mean_sensor 0'],df['rolling_mean_sensor 1'], df['rolling_mean_sensor 2'] ]
-    df['sensor_meas_mean*'] = np.mean(sensor_measures)
-    
-    return df
 
-df_train1_processed = rolling_func(df_train1_processed)
-df_train1_processed = usage_dur_oper(df_train1_processed)
 
-print(df_train1_processed.columns)
+#     df_usage = pd.DataFrame()
+#     df_grouped = df.groupby('unit number')[[['time'], ['operational setting 1'],['operational setting 2'],['operational setting 3']]]
+#     df_usage['oper_time_mean'] = df['operational setting 0']
+
+#     print(df_grouped)
+#     return df
+
+       xd = df.loc[0, ['unit number', 'time', 'operational setting 0', 'operational setting 1',  'operational setting 2']]
+       xdd =  np.mean([xd['operational setting 0'],xd['operational setting 1'],xd['operational setting 2']])
+       print(xdd)
+# df_train1_processed = rolling_func(df_train1_processed)
+usage_dur_oper(df_train1_processed)
+
