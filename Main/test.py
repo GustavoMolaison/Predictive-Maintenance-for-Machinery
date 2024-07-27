@@ -2,6 +2,7 @@ import pandas as pd
 from matplotlib import pyplot as plt
 import numpy as np
 
+
 pd.set_option('display.max_columns', None)
 pd.set_option('display.max_rows', 100)
 pd.set_option('display.width', None)
@@ -50,7 +51,10 @@ def mod_df(df_var, new_df_name):
         
         print(new_df_name)    
 
-mod_df(df_test1_fake, df_names_dict['df_test1'])
+# mod_df(df_test1_fake, df_names_dict['df_test1'])
+
+def usage_dur_oper(df):
+     df.groupby
 
 # print(df_test1_fake.iloc[0])
 # bef_split = df_test1_fake.iloc[0]

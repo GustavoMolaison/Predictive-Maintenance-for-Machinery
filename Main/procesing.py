@@ -8,10 +8,15 @@ pd.set_option('display.max_rows', 100)
 pd.set_option('display.width', None)
 pd.set_option('display.max_colwidth', None)
 
-# Read data
-df_test1_fake = pd.read_csv('test_FD001.txt', delim_whitespace=True)
-df_train1_fake = pd.read_csv('train_FD001.txt', delim_whitespace=True)
-df_test1_fake.reset_index(drop=True, inplace=True)
+
+
+
+
+
+
+
+
+
 
 # Function to modify DataFrame columns
 def mod_df(df_var):
@@ -21,15 +26,13 @@ def mod_df(df_var):
     new_df.columns = column_names
     return new_df
 
-# Apply column modifications
-df_test1_processed = mod_df(df_test1_fake)
-df_train1_processed = mod_df(df_train1_fake)
 
-# Analyze the dataset
-filt = (df_train1_processed['time'] == 1).sum()
-print(f'train: {filt}')
-filt = (df_test1_processed['time'] == 1).sum()
-print(f'test: {filt}')
+
+
+
+
+
+
 
 # Function to calculate time until breakdown
 def count_time(df):
@@ -43,6 +46,8 @@ def time_info():
     plt.bar(list(range(100)), breakout_time)
     plt.show()
 
+
+
 # Calculate rolling statistics
 def rolling_func(df):
     df_rol = pd.DataFrame()
@@ -55,8 +60,12 @@ def rolling_func(df):
     df = pd.concat([df, df_rol], axis=1)
     return df
 
-# Apply rolling function
-df_train1_processed = rolling_func(df_train1_processed)
+
+
+
+
+
+
 
 # Function to generate lag features
 def lag_feature(df, lags=[1, 2, 3]):
@@ -73,8 +82,13 @@ def lag_feature(df, lags=[1, 2, 3]):
     df.bfill(inplace=True)         
     return df
 
-# Apply lag features
-df_train1_processed = lag_feature(df_train1_processed)
+
+
+
+
+
+
+
 
 # Function to calculate usage duration features
 def usage_dur_oper(df):
@@ -82,8 +96,49 @@ def usage_dur_oper(df):
     df['sensor_mer_mean*'] = df[[f'sensor measurement {i}' for i in range(21)]].mean(axis=1, skipna=True)
     return df      
 
-# Apply usage duration function
-df_train1_processed = usage_dur_oper(df_train1_processed)
 
-# Print some data to verify
-print(df_train1_processed.head())
+
+
+
+
+ 
+
+# Get proccesed data frame to another file
+def procces_df(df):
+    df = mod_df(df)
+    df = rolling_func(df)
+    df = lag_feature(df)
+    df = usage_dur_oper(df)
+
+    return df
+    
+  
+
+
+
+if __name__ == '__main__':
+ df_test1_fake = pd.read_csv('test_FD001.txt', delim_whitespace=True)
+ df_train1_fake = pd.read_csv('train_FD001.txt', delim_whitespace=True)
+ df_test1_fake.reset_index(drop=True, inplace=True)
+
+ # Apply column modifications
+ df_test1_processed = mod_df(df_test1_fake)
+ df_train1_processed = mod_df(df_train1_fake)
+
+ # Apply rolling function
+ df_train1_processed = rolling_func(df_train1_processed)
+
+ # Analyze the dataset
+ filt = (df_train1_processed['time'] == 1).sum()
+ print(f'train: {filt}')
+ filt = (df_test1_processed['time'] == 1).sum()
+ print(f'test: {filt}')
+
+ # Apply lag features
+ df_train1_processed = lag_feature(df_train1_processed)
+
+ # Apply usage duration function
+ df_train1_processed = usage_dur_oper(df_train1_processed)
+
+  # Print some data to verify
+ print(df_train1_processed.head())

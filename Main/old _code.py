@@ -141,7 +141,7 @@ df_train1_processed = lag_feature(df_train1_processed)
 
 
 
-def usage_dur_oper(df):
+def means(df):
 #     rolling_func(df)
 
       df['oper_set_mean*'] = df[['operational setting 0', 'operational setting 1', 'operational setting 2']].mean(axis=1, skipna = True)
@@ -154,5 +154,5 @@ def usage_dur_oper(df):
       return df      
        
 # df_train1_processed = rolling_func(df_train1_processed)
-df_train1_processed = usage_dur_oper(df_train1_processed)
+df_train1_processed = means(df_train1_processed)
 
