@@ -17,37 +17,41 @@ if __name__ == '__main__':
    breakout_list = count_time(df_train1)
 
 
-def splitting(df):
-   X_list = []
-   y_list = []
+def splitting(df, type):
 
-   for i in range (1, 100):
-       spectrum = breakout_list[i - 1] - np.random.randint(25, 80)
-       filt = df['unit number'] == i
-       df_filt = df[filt]
+   if type == 'train':
+      X_list = []
+      y_list = []
+      num = 1
+
+           for i in range (1, 100):
+                spectrum = breakout_list[i - 1] - np.random.randint(25, 80)
+                filt = df['unit number'] == i
+                df_filt = df[filt]
        
 
-       x_todrop = df_filt['time'] < spectrum
-       y_todrop = df_filt['time'] >=spectrum
+                x_todrop = df_filt['time'] < spectrum
+                y_todrop = df_filt['time'] >=spectrum
          
 
-       x_filtered = df_filt[x_todrop]
-       y_filtered = df_filt[y_todrop]
+                x_filtered = df_filt[x_todrop]
+                y_filtered = df_filt[y_todrop]
 
-       y_todrop2 = y_filtered['time'] == y_filtered['time'].max()
-       y_filt2 =  y_filtered[y_todrop2]
+                y = y_filtered['time'].max()
+      
 
-          
+                y_to_go = pd.Series([y] * x_filtered.shape[0], index=x_filtered.index)
 
-       X_list.append(x_filtered)
-    #    y_list.append(y_todrop)
-       y_list.append(y_filt2)
+
+               X_list.append(x_filtered)
+               y_list.append(y_to_go)
+               print(num)
+               num += 1
    
-    #    X_comb = pd.concat(X_list, ignore_index=True)
-    #    y_comb = pd.concat(y_list, ignore_index=True)
-   print((X_list[0]))
-   print(f'{y_list[0]}')
-   return X_list, y_list
+           X_comb = pd.concat(X_list, ignore_index=True)
+           y_comb = pd.concat(y_list, ignore_index=True)
+   
+           return X_comb, y_comb
 
 # if __name__ == '__main__':
 # X, y = splitting(df_train1)
@@ -60,13 +64,15 @@ def modeling(train, test):
     X, y = splitting(train)
 
     model = RandomForestRegressor()
-    model.fit(X[0], y[0])
+    model.fit(X, y)
     
     y_pred = model.predict(test)
-    mse =  mean_squared_error(test, y_pred)
-    r2 = r2_score(test, y_pred)
+   #  mse =  mean_squared_error(test, y_pred)
+   #  r2 = r2_score(test, y_pred)
 
 
     plt.scatter(test, y_pred)
+    plt.show()
+    stop = input('Press anything to end')
 
 modeling(train = df_train1, test = df_test1)
