@@ -19,12 +19,24 @@ if __name__ == '__main__':
 
 def splitting(df, type):
 
+   if type == 'test':
+        units = df['unit number'].unique()
+        X_test_list = []
+
+        for unit in units:
+             unit_data = df[df['unit number'] == unit]
+             X_test_list.append(unit_data)
+
+        return X_test_list 
+
+
+
    if type == 'train':
       X_list = []
       y_list = []
       num = 1
 
-           for i in range (1, 100):
+      for i in range (1, 100):
                 spectrum = breakout_list[i - 1] - np.random.randint(25, 80)
                 filt = df['unit number'] == i
                 df_filt = df[filt]
@@ -43,30 +55,42 @@ def splitting(df, type):
                 y_to_go = pd.Series([y] * x_filtered.shape[0], index=x_filtered.index)
 
 
-               X_list.append(x_filtered)
-               y_list.append(y_to_go)
-               print(num)
-               num += 1
+                X_list.append(x_filtered)
+                y_list.append(y_to_go)
+                print(num)
+                num += 1
    
-           X_comb = pd.concat(X_list, ignore_index=True)
-           y_comb = pd.concat(y_list, ignore_index=True)
+      X_comb = pd.concat(X_list, ignore_index=True)
+      y_comb = pd.concat(y_list, ignore_index=True)
    
-           return X_comb, y_comb
+      return X_comb, y_comb
 
 # if __name__ == '__main__':
 # X, y = splitting(df_train1)
 
-
-
-
-def modeling(train, test):
+def pred_and_eve(model, test_list):
     
-    X, y = splitting(train)
+    pred_list = []
+
+    for test in test_list:
+         if not test_list.empty:
+            y_pred = model.predict(test.drop(colums = ['unit number']))
+            pred_list.append(y_pred)
+
+    return pred_list
+
+
+def modeling(df, test):
+    
+    X, y = splitting(df, 'train')
 
     model = RandomForestRegressor()
     model.fit(X, y)
     
-    y_pred = model.predict(test)
+    X_test_list = splitting(test, 'test')
+    pred_and_eve(model, X_test_list)
+
+    y_pred = pd.concat(test_list, ignore_index = True)
    #  mse =  mean_squared_error(test, y_pred)
    #  r2 = r2_score(test, y_pred)
 
@@ -75,4 +99,4 @@ def modeling(train, test):
     plt.show()
     stop = input('Press anything to end')
 
-modeling(train = df_train1, test = df_test1)
+modeling(df = df_train1, test = df_test1)
