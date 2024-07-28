@@ -90,7 +90,7 @@ def modeling(df, test):
     X_test_list = splitting(test, 'test')
     pred_and_eve(model, X_test_list)
 
-    y_pred = pd.concat(test_list, ignore_index = True)
+    y_pred = pd.concat(X_test_list, ignore_index = True)
    #  mse =  mean_squared_error(test, y_pred)
    #  r2 = r2_score(test, y_pred)
 
