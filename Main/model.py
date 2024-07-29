@@ -73,8 +73,7 @@ def pred_and_eve(model, test_list):
     pred_list = []
 
     for test in test_list:
-         if not test_list.empty:
-            y_pred = model.predict(test.drop(colums = ['unit number']))
+            y_pred = model.predict(test.drop('unit number'))
             pred_list.append(y_pred)
 
     return pred_list
@@ -91,12 +90,13 @@ def modeling(df, test):
     pred_and_eve(model, X_test_list)
 
     y_pred = pd.concat(X_test_list, ignore_index = True)
+    print(y_pred)
    #  mse =  mean_squared_error(test, y_pred)
    #  r2 = r2_score(test, y_pred)
 
 
-    plt.scatter(test, y_pred)
-    plt.show()
-    stop = input('Press anything to end')
+   #  plt.scatter(test, y_pred)
+   #  plt.show()
+   #  stop = input('Press anything to end')
 
 modeling(df = df_train1, test = df_test1)
