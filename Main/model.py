@@ -36,14 +36,14 @@ def splitting(df, type):
       y_list = []
       num = 1
 
-      for i in range (1, 100):
+      for i in range (len(df['unit number'].unique() + 1)):
                 spectrum = breakout_list[i - 1] - np.random.randint(25, 80)
                 filt = df['unit number'] == i
                 df_filt = df[filt]
        
 
-                x_todrop = df_filt['time'] < spectrum
-                y_todrop = df_filt['time'] >=spectrum
+                x_todrop = df_filt['time'] <  spectrum
+                y_todrop = df_filt['time'] >= spectrum
          
 
                 x_filtered = df_filt[x_todrop]
@@ -73,7 +73,7 @@ def pred_and_eve(model, test_list):
     pred_list = []
 
     for test in test_list:
-            y_pred = model.predict(test.drop('unit number'))
+            y_pred = model.predict(test)
             pred_list.append(y_pred)
 
     return pred_list
@@ -83,20 +83,30 @@ def modeling(df, test):
     
     X, y = splitting(df, 'train')
 
+    X_train, X_val, Y_train, Y_val = train_test_split(X, y, test_size=0.2, random_state = 42)
+
     model = RandomForestRegressor()
     model.fit(X, y)
     
     X_test_list = splitting(test, 'test')
-    pred_and_eve(model, X_test_list)
+    pred_lists = pred_and_eve(model, X_test_list)
 
-    y_pred = pd.concat(X_test_list, ignore_index = True)
-    print(y_pred)
+   
+    breakouts = []
+    for listt in pred_lists:
+       breakoutime = listt[-1]
+       breakouts.append(breakoutime)
+      
+       
+     
+
+
    #  mse =  mean_squared_error(test, y_pred)
    #  r2 = r2_score(test, y_pred)
 
-
-   #  plt.scatter(test, y_pred)
-   #  plt.show()
-   #  stop = input('Press anything to end')
+    unit_num = range(len(X_test_list))
+    plt.scatter(breakouts,  unit_num)
+    plt.show()
+    stop = input('Press anything to end')
 
 modeling(df = df_train1, test = df_test1)

@@ -39,11 +39,11 @@ def count_time(df):
     time_break_list = df.groupby('unit number')['time'].max().tolist()
     return time_break_list
 
-def time_info():
-    mean_time = np.mean(count_time(df_train1_processed))
-    breakout_time = count_time(df_train1_processed)
+def time_info(df):
+    mean_time = np.mean(count_time(df))
+    breakout_time = count_time(df)
     print(f'Average time for machine to break down: {mean_time}')
-    plt.bar(list(range(100)), breakout_time)
+    plt.bar(len(range(df['unit number'].unique + 1)), breakout_time)
     plt.show()
 
 
