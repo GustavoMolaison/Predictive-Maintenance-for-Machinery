@@ -17,26 +17,46 @@ if __name__ == '__main__':
    breakout_list = count_time(df_train1)
 
 
-def splitting(df, type):
 
-   if type == 'test':
-        units = df['unit number'].unique()
+
+
+def custom_train_test_split(df, test_ratio):
+     unique_units = df['unit number'].unique()
+     num_test_units = int(len(unique_units) * test_ratio)
+
+     num_test_units = min(num_test_units, len(unique_units))
+
+     test_units = unique_units[:num_test_units]
+     train_units = unique_units[num_test_units:]
+     
+     test = df[df['unit number'].isin(test_units)]
+     train = df[df['unit number'].isin(train_units)]
+     
+     X_test_list, y_list_test = splitting(test, 'test')
+     X_train, Y_train = splitting(train, 'train')
+
+     return  X_train, X_test_list, Y_train, y_list_test
+
+
+def splitting(df, type):
+      
+      if type == 'test2':
+
+
+        
         X_test_list = []
 
-        for unit in units:
-             unit_data = df[df['unit number'] == unit]
+        for unit in X_comb['unit number'].unique():
+             unit_data = X_comb[X_comb['unit number'] == unit]
              X_test_list.append(unit_data)
+        return   X_test_list  
 
-        return X_test_list 
-
-
-
-   if type == 'train':
+   
       X_list = []
       y_list = []
       num = 1
 
-      for i in range (len(df['unit number'].unique() + 1)):
+      for i in (df['unit number'].unique()):
                 spectrum = breakout_list[i - 1] - np.random.randint(25, 80)
                 filt = df['unit number'] == i
                 df_filt = df[filt]
@@ -50,9 +70,7 @@ def splitting(df, type):
                 y_filtered = df_filt[y_todrop]
 
                 y = y_filtered['time'].max()
-      
-
-                y_to_go = pd.Series([y] * x_filtered.shape[0], index=x_filtered.index)
+                y_to_go = pd.Series(y * x_filtered.shape[0], index=x_filtered.index)
 
 
                 X_list.append(x_filtered)
@@ -62,51 +80,89 @@ def splitting(df, type):
    
       X_comb = pd.concat(X_list, ignore_index=True)
       y_comb = pd.concat(y_list, ignore_index=True)
-   
-      return X_comb, y_comb
+
+      if type == 'test':
+
+
+        
+        X_test_list = []
+
+        for unit in X_comb['unit number'].unique():
+             unit_data = X_comb[X_comb['unit number'] == unit]
+             X_test_list.append(unit_data)
+
+        
+        y_list_mean = [np.mean(series) for series in y_list]   
+#          
+        return X_test_list, y_list_mean 
+      
+
+      if type == 'train':
+#        train
+         return X_comb, y_comb
 
 # if __name__ == '__main__':
 # X, y = splitting(df_train1)
 
 def pred_and_eve(model, test_list):
     
-    pred_list = []
+    y_pred_list = []
 
     for test in test_list:
             y_pred = model.predict(test)
-            pred_list.append(y_pred)
+            y_pred_list.append(np.mean(y_pred))
 
-    return pred_list
+    return y_pred_list
 
 
 def modeling(df, test):
     
-    X, y = splitting(df, 'train')
-
-    X_train, X_val, Y_train, Y_val = train_test_split(X, y, test_size=0.2, random_state = 42)
-
-    model = RandomForestRegressor()
-    model.fit(X, y)
     
-    X_test_list = splitting(test, 'test')
-    pred_lists = pred_and_eve(model, X_test_list)
+
+    X_train, X_val_list, Y_train, Y_val_list = custom_train_test_split(df, 0.2)
+    
+    model = RandomForestRegressor()
+    model.fit(X_train, Y_train)
+
+    
+    y_pred_list = pred_and_eve(model, X_val_list)
+         
+    print("Shapes of predictions:", [pred.shape for pred in y_pred_list])
+    print("Shapes of true values:", [val.shape for val in Y_val_list])
+    
+    
+    mse =  mean_squared_error(Y_val_list, y_pred_list)
+    r2 = r2_score(Y_val_list, y_pred_list)
+
+
+    plt.scatter(Y_val_list, y_pred_list)
+    plt.show()
+    stop = input('Press anything to end')
+
+
+
+
+
+    # predicting test files without true values
+#     X_test_list = splitting(test, 'test')
+#     pred_lists = pred_and_eve(model, X_test_list)
 
    
-    breakouts = []
-    for listt in pred_lists:
-       breakoutime = listt[-1]
-       breakouts.append(breakoutime)
+#     breakouts = []
+#     for listt in pred_lists:
+#        breakoutime = listt[-1]
+#        breakouts.append(breakoutime)
       
        
      
 
 
-   #  mse =  mean_squared_error(test, y_pred)
-   #  r2 = r2_score(test, y_pred)
+#    #  mse =  mean_squared_error(test, y_pred)
+#    #  r2 = r2_score(test, y_pred)
 
-    unit_num = range(len(X_test_list))
-    plt.scatter(breakouts,  unit_num)
-    plt.show()
-    stop = input('Press anything to end')
+#     unit_num = range(len(X_test_list))
+#     plt.scatter(breakouts,  unit_num)
+#     plt.show()
+#     stop = input('Press anything to end')
 
 modeling(df = df_train1, test = df_test1)
