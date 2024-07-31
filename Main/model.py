@@ -34,6 +34,7 @@ def custom_train_test_split(df, test_ratio):
      
      X_test_list, y_list_test = splitting(test, 'test')
      X_train, Y_train = splitting(train, 'train')
+     print(f'y_test_list{y_list_test[0]}')
 
      return  X_train, X_test_list, Y_train, y_list_test
 
@@ -46,8 +47,8 @@ def splitting(df, type):
         
         X_test_list = []
 
-        for unit in X_comb['unit number'].unique():
-             unit_data = X_comb[X_comb['unit number'] == unit]
+        for unit in df['unit number'].unique():
+             unit_data = df[df['unit number'] == unit]
              X_test_list.append(unit_data)
         return   X_test_list  
 
@@ -70,8 +71,9 @@ def splitting(df, type):
                 y_filtered = df_filt[y_todrop]
 
                 y = y_filtered['time'].max()
-                y_to_go = pd.Series(y * x_filtered.shape[0], index=x_filtered.index)
-
+                print(f'yyyyyyyyyyyyyyyy{y}')
+                y_to_go = pd.Series([y] * x_filtered.shape[0], index=x_filtered.index)
+                print(f'debugging y_to_go{y_to_go.max()}')
 
                 X_list.append(x_filtered)
                 y_list.append(y_to_go)
@@ -91,9 +93,9 @@ def splitting(df, type):
              unit_data = X_comb[X_comb['unit number'] == unit]
              X_test_list.append(unit_data)
 
-        
-        y_list_mean = [np.mean(series) for series in y_list]   
-#          
+        print(f'debugging{y_list[0]}')
+        y_list_mean = [(series.max()) for series in y_list]   
+        print(f'y_list_mean{y_list_mean[0]}')   
         return X_test_list, y_list_mean 
       
 
@@ -120,6 +122,8 @@ def modeling(df, test):
     
 
     X_train, X_val_list, Y_train, Y_val_list = custom_train_test_split(df, 0.2)
+
+    print(Y_val_list[0])
     
     model = RandomForestRegressor()
     model.fit(X_train, Y_train)
@@ -136,6 +140,8 @@ def modeling(df, test):
 
 
     plt.scatter(Y_val_list, y_pred_list)
+    plt.ylabel('Predicted values')
+    plt.xlabel('Actual labels')
     plt.show()
     stop = input('Press anything to end')
 
