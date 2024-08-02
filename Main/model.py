@@ -1,7 +1,7 @@
 import pandas as pd
 from matplotlib import pyplot as plt
 import numpy as np
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, RandomizedSearchCV
 from sklearn.ensemble import RandomForestRegressor
 from procesing import procces_df, count_time
 from sklearn.metrics import mean_squared_error, r2_score
@@ -119,6 +119,9 @@ def pred_and_eve(model, test_list):
 
 def modeling(df, test):
     
+    tunning_set = {'n_estimators' : list(range(1,101,25)),
+                   'max_depth': list(range(20, 100, 10)),
+                   'min_samples_split' : list(range(2,26, 2))}
     
 
     X_train, X_val_list, Y_train, Y_val_list = custom_train_test_split(df, 0.2)
@@ -126,13 +129,18 @@ def modeling(df, test):
     print(Y_val_list[0])
     
     model = RandomForestRegressor()
-    model.fit(X_train, Y_train)
+
+    tunned_model = RandomizedSearchCV(estimator=model, param_distributions=tunning_set, n_jobs = -1, n_iter=5, scoring = 'neg_mean_squared_error' , cv = 5, random_state=42)
+
+    tunned_model.fit(X_train, Y_train)
+    best_params = tunned_model.best_params_
+    best_score = tunned_model.best_score_
 
     
-    y_pred_list = pred_and_eve(model, X_val_list)
+    y_pred_list = pred_and_eve(tunned_model, X_val_list)
          
-    print("Shapes of predictions:", [pred.shape for pred in y_pred_list])
-    print("Shapes of true values:", [val.shape for val in Y_val_list])
+#     print("Shapes of predictions:", [pred.shape for pred in y_pred_list])
+#     print("Shapes of true values:", [val.shape for val in Y_val_list])
     
     
     mse =  mean_squared_error(Y_val_list, y_pred_list)
@@ -143,10 +151,96 @@ def modeling(df, test):
     plt.ylabel('Predicted values')
     plt.xlabel('Actual labels')
     plt.show()
+    print(f'mean_squared_error; {mse}')
+    print(f'r2_score {r2}')
     stop = input('Press anything to end')
 
+def modeling_compare(df, test = None):
+    
+# basic model
+    X_train, X_val_list, Y_train, Y_val_list = custom_train_test_split(df, 0.2)
+
+    print(Y_val_list[0])
+    
+    model = RandomForestRegressor()
+
+    model.fit(X_train, Y_train)
+
+    
+    y_pred_list_basic =  pred_and_eve(RandomForestRegressor, X_val_list)
+         
+#     print("Shapes of predictions:", [pred.shape for pred in y_pred_list])
+#     print("Shapes of true values:", [val.shape for val in Y_val_list])
+    
+    
+    mse_basic =  mean_squared_error(Y_val_list, y_pred_list_basic)
+    r2_basic = r2_score(Y_val_list, y_pred_list_basic)
 
 
+    plt.scatter(Y_val_list, y_pred_list_basic)
+    plt.ylabel('Predicted values(basic model)')
+    plt.xlabel('Actual labels')
+    basic_model_scatter = plt.gcf()
+    print(f'mean_squared_error; {mse_basic}')
+    print(f'r2_score {r2_basic}')
+    
+#     
+# Tunned model
+    
+    tunning_set = {'n_estimators' : list(range(1,101,25)),
+                   'max_depth': list(range(20, 100, 10)),
+                   'min_samples_slpit' : list(range(2,26, 2))}
+    
+
+    X_train, X_val_list, Y_train, Y_val_list = custom_train_test_split(df, 0.2)
+
+    print(Y_val_list[0])
+    
+    model = RandomForestRegressor()
+
+    tunned_model = RandomizedSearchCV(estimator=model, param_distributions=tunning_set, n_jobs = -1, n_iter=5, scoring = 'neg_mean_squared_error' , cv = 5, random_state=42)
+
+    tunned_model.fit(X_train, Y_train)
+    best_params = tunned_model.best_params_
+    best_score = tunned_model.best_score_
+
+    
+    y_pred_list = tunned_model(model, X_val_list)
+         
+#     print("Shapes of predictions:", [pred.shape for pred in y_pred_list])
+#     print("Shapes of true values:", [val.shape for val in Y_val_list])
+    
+    
+    mse =  mean_squared_error(Y_val_list, y_pred_list)
+    r2 = r2_score(Y_val_list, y_pred_list)
+
+
+    plt.scatter(Y_val_list, y_pred_list)
+    plt.ylabel('Predicted values(tunned model)')
+    plt.xlabel('Actual labels')
+    tunned_model_scatter = plt.gcf()
+    print(f'mean_squared_error; {mse}')
+    print(f'r2_score {r2}')
+    
+
+    return basic_model_scatter, tunned_model_scatter
+
+def compare(df):
+
+     basic_model_scatter, tunned_model_scatter = modeling_compare(df)
+
+     fig, axs = plt.subplots(1,2)
+     
+     axs[0,0] = basic_model_scatter
+     axs[0,0].set_title('basic model')
+
+     axs[0,1] = tunned_model_scatter
+     axs[0,1].set_title('tunned model')
+
+     fig.suptitle('four plots')
+     plt.tight_layout()
+     plt.show()
+     stop = input('Press anything to end')
 
 
     # predicting test files without true values
