@@ -71,9 +71,9 @@ def splitting(df, type):
                 y_filtered = df_filt[y_todrop]
 
                 y = y_filtered['time'].max()
-                print(f'yyyyyyyyyyyyyyyy{y}')
+                # print(f'yyyyyyyyyyyyyyyy{y}')
                 y_to_go = pd.Series([y] * x_filtered.shape[0], index=x_filtered.index)
-                print(f'debugging y_to_go{y_to_go.max()}')
+                # print(f'debugging y_to_go{y_to_go.max()}')
 
                 X_list.append(x_filtered)
                 y_list.append(y_to_go)
@@ -166,8 +166,8 @@ def modeling_compare(df, test = None):
 
     model.fit(X_train, Y_train)
 
-    
-    y_pred_list_basic =  pred_and_eve(RandomForestRegressor, X_val_list)
+    print(F'XDDXDXDDXTOTUTAJTAJ44444444444444444444444444444{X_val_list}')
+    y_pred_list_basic =  pred_and_eve(model, X_val_list)
          
 #     print("Shapes of predictions:", [pred.shape for pred in y_pred_list])
 #     print("Shapes of true values:", [val.shape for val in Y_val_list])
@@ -189,7 +189,7 @@ def modeling_compare(df, test = None):
     
     tunning_set = {'n_estimators' : list(range(1,101,25)),
                    'max_depth': list(range(20, 100, 10)),
-                   'min_samples_slpit' : list(range(2,26, 2))}
+                   'min_samples_split' : list(range(2,26, 2))}
     
 
     X_train, X_val_list, Y_train, Y_val_list = custom_train_test_split(df, 0.2)
@@ -205,8 +205,8 @@ def modeling_compare(df, test = None):
     best_score = tunned_model.best_score_
 
     
-    y_pred_list = tunned_model(model, X_val_list)
-         
+    
+    y_pred_list =  pred_and_eve(tunned_model, X_val_list)     
 #     print("Shapes of predictions:", [pred.shape for pred in y_pred_list])
 #     print("Shapes of true values:", [val.shape for val in Y_val_list])
     
@@ -229,13 +229,13 @@ def compare(df):
 
      basic_model_scatter, tunned_model_scatter = modeling_compare(df)
 
-     fig, axs = plt.subplots(1,2)
+     fig, axs = plt.subplots(1, 2)
      
-     axs[0,0] = basic_model_scatter
-     axs[0,0].set_title('basic model')
+     axs[0] = basic_model_scatter
+     axs[0].suptitle('basic model')
 
-     axs[0,1] = tunned_model_scatter
-     axs[0,1].set_title('tunned model')
+     axs[1] = tunned_model_scatter
+     axs[1].suptitle('tunned model')
 
      fig.suptitle('four plots')
      plt.tight_layout()
@@ -265,4 +265,4 @@ def compare(df):
 #     plt.show()
 #     stop = input('Press anything to end')
 
-modeling(df = df_train1, test = df_test1)
+compare(df = df_train1)
