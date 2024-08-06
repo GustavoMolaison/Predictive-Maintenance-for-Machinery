@@ -6,9 +6,12 @@ from sklearn.model_selection import train_test_split, RandomizedSearchCV
 from sklearn.ensemble import RandomForestRegressor
 from procesing import procces_df, count_time
 from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.preprocessing import MinMaxScaler
 
+import tensorflow as tf
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense
+from tensorflow.keras.preprocessing.sequence import pad_sequences
 
 
 
@@ -121,10 +124,69 @@ def pred_and_eve(model, test_list):
 
     return y_pred_list
 
+def minmaxscaling_sequences(df, engines_range = 25):
+     scaler = MinMaxScaler(feature_range=(0,1))
+     features = df.columns.tolist()
+     features.remove('unit number')
+     features.remove('time')
+     scaled_data = scaler.fit_transform(df[features])
+     scaled_df_fake = pd.DataFrame(scaled_data)
+     scaled_df = pd.concat([df[['unit number','time']], scaled_df_fake], axis=1)
 
-def modeling(df):
+     def create_sequences(data, engines_num):
+          xs, ys = [], []
+          
+          for i in range(engines_num):
+               filt = data['unit number'] == i
+               data_filt = data[filt]
+               x = data_filt
+               y = data_filt['time'].max()
+               xs.append(x)
+               ys.append(y)
+          print(xs)
+          print(ys)     
+          return np.array(xs), np.array(ys)     
+
+     return create_sequences(scaled_df, engines_range)
+
+
+def LSTM_model(X_shape, y_shape):
+     model = Sequential()
+     model.add(LSTM(50, activation = 'relu', input_shape=(X_shape, y_shape)))
+     model.add(Dense(1))
+     model.compile(optimizer ='adam', loss = 'mse')
+
+     return model
+
+
+def model_fun(df):
+   
+   X_train, y_train = minmaxscaling_sequences(df, engines_range = 25)
+
+   X_train_padded = pad_sequences(X_train, padding='post', maxlen = df['time'].max())
     
-   model = Sequential()
-   model.add(LSTM(50, activation = 'relu', input_shape=(timesteps, features)))
+   model = LSTM_model(X_train_padded.shape[1], X_train_padded.shape[2])
 
-modeling(df = df_train1)
+   model_trained = model.fit(X_train, y_train, epochs = 20, batch_size = 32, validation_spit = 0.2)
+
+   return model_trained
+
+
+def evaluate_LSTM_model(model, X_test, y_test):
+     y_pred = model.predict(X_test)
+     mse = np.mean((y_test - y_pred) ** 2)
+     r2 = r2_score(y_test, y_pred)
+     print(f'Mean Squared Error: {mse}')
+     print(f'R2 Score: {r2}')
+
+     plt.scatter(y_test, y_pred)
+     plt.xlabel('Actual Values')
+     plt.ylabel('Predicted Values')
+     plt.title('LSTM Model Predictions')
+     plt.show()
+     stop = input('press anything to stop')
+
+
+model = model_fun(df_train1)
+X_test, y_test= minmaxscaling_sequences(df = df_test1, engines_range = 25)
+evaluate_LSTM_model(model = model, X_test = X_test, y_test = y_test )
