@@ -131,20 +131,25 @@ def minmaxscaling_sequences(df, engines_range = 25):
      features.remove('time')
      scaled_data = scaler.fit_transform(df[features])
      scaled_df_fake = pd.DataFrame(scaled_data)
-     scaled_df = pd.concat([df[['unit number','time']], scaled_df_fake], axis=1)
-
+     scaled_df = pd.concat([df['unit number'], df['time'],  scaled_df_fake], axis=1)
+     scaled_df.columns = df.columns
+     print(scaled_df)
+     print(scaled_df.columns)
+     print(scaled_df['unit number'])
+           
      def create_sequences(data, engines_num):
           xs, ys = [], []
           
           for i in range(engines_num):
                filt = data['unit number'] == i
                data_filt = data[filt]
+               print(data_filt)
                x = data_filt
                y = data_filt['time'].max()
                xs.append(x)
                ys.append(y)
-          print(xs)
-          print(ys)     
+          # print(xs)
+          # print(ys)     
           return np.array(xs), np.array(ys)     
 
      return create_sequences(scaled_df, engines_range)
