@@ -124,7 +124,9 @@ def pred_and_eve(model, test_list):
 
     return y_pred_list
 
-def minmaxscaling_sequences(df, engines_range = 25):
+def minmaxscaling_sequences(df, df_test, engines_range = 25):
+     df = df.bfill()
+     # print(np.array(df.groupby('unit number')['time'].max().tolist()))
      scaler = MinMaxScaler(feature_range=(0,1))
      features = df.columns.tolist()
      features.remove('unit number')
@@ -133,9 +135,9 @@ def minmaxscaling_sequences(df, engines_range = 25):
      scaled_df_fake = pd.DataFrame(scaled_data)
      scaled_df = pd.concat([df['unit number'], df['time'],  scaled_df_fake], axis=1)
      scaled_df.columns = df.columns
-     print(scaled_df)
-     print(scaled_df.columns)
-     print(scaled_df['unit number'])
+     # print(scaled_df)
+     # print(scaled_df.columns)
+     # print(scaled_df['unit number'])
            
      def create_sequences(data, engines_num):
           xs, ys = [], []
@@ -143,13 +145,16 @@ def minmaxscaling_sequences(df, engines_range = 25):
           for i in range(engines_num):
                filt = data['unit number'] == i
                data_filt = data[filt]
-               print(data_filt)
+               # print(data_filt)
                x = data_filt
                y = data_filt['time'].max()
                xs.append(x)
                ys.append(y)
           # print(xs)
-          # print(ys)     
+          # print(ys)   
+          df_group = np.array(df_test.groupby('unit number')['time'].max().tolist())
+          print(df_group)
+          xs = pad_sequences(xs, maxlen = df_group.min(), padding = 'post', truncating ='post')   
           return np.array(xs), np.array(ys)     
 
      return create_sequences(scaled_df, engines_range)
@@ -164,21 +169,32 @@ def LSTM_model(X_shape, y_shape):
      return model
 
 
-def model_fun(df):
+def model_fun(df, df_test):
    
-   X_train, y_train = minmaxscaling_sequences(df, engines_range = 25)
+   X_train, y_train = minmaxscaling_sequences(df = df, df_test = df_test,  engines_range = 25)
 
-   X_train_padded = pad_sequences(X_train, padding='post', maxlen = df['time'].max())
+#    X_train_padded = pad_sequences(X_train, padding='post', maxlen = df['time'].max())
     
-   model = LSTM_model(X_train_padded.shape[1], X_train_padded.shape[2])
+   model = LSTM_model(X_train.shape[1], X_train.shape[2])
 
-   model_trained = model.fit(X_train, y_train, epochs = 20, batch_size = 32, validation_spit = 0.2)
+   print(f'XDSDD{np.isnan(X_train).sum()}')
+   print(f'XDSDD{np.isnan(y_train).sum()}')
+   y_train = np.nan_to_num(y_train, nan=0)
 
-   return model_trained
+   model_history = model.fit(X_train, y_train, epochs = 20, batch_size = 32, validation_split = 0.2)
+ 
+   return model, model_history
 
 
 def evaluate_LSTM_model(model, X_test, y_test):
      y_pred = model.predict(X_test)
+     print(f'XDSDD{np.isnan(X_test).sum()}')
+     y_test = np.nan_to_num(y_test, nan=0)
+     # mean_value = np.nanmean(y_test)
+     # y_test = np.nan_to_num(y_test, nan=mean_value)
+     # mean_value = np.nanmean(y_pred)
+     # y_pred = np.nan_to_num(y_pred, nan=mean_value)
+
      mse = np.mean((y_test - y_pred) ** 2)
      r2 = r2_score(y_test, y_pred)
      print(f'Mean Squared Error: {mse}')
@@ -192,6 +208,6 @@ def evaluate_LSTM_model(model, X_test, y_test):
      stop = input('press anything to stop')
 
 
-model = model_fun(df_train1)
-X_test, y_test= minmaxscaling_sequences(df = df_test1, engines_range = 25)
+model, model_history = model_fun(df_train1, df_test1)
+X_test, y_test= minmaxscaling_sequences(df = df_test1, df_test = df_test1, engines_range = 25)
 evaluate_LSTM_model(model = model, X_test = X_test, y_test = y_test )
