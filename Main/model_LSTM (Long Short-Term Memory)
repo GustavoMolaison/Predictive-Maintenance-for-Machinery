@@ -10,7 +10,7 @@ from sklearn.preprocessing import MinMaxScaler
 
 import tensorflow as tf
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import LSTM, Dense
+from tensorflow.keras.layers import LSTM, Dense, LeakyReLU
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 
 
@@ -159,12 +159,20 @@ def minmaxscaling_sequences(df, df_test, engines_range = 25):
 
      return create_sequences(scaled_df, engines_range)
 
-
+# ERROR HERE############################################################################################################################
 def LSTM_model(X_shape, y_shape):
+     # RELU
      model = Sequential()
      model.add(LSTM(50, activation = 'relu', input_shape=(X_shape, y_shape)))
      model.add(Dense(1))
      model.compile(optimizer ='adam', loss = 'mse')
+
+     # LEAKYRELU
+     # model = Sequential()
+     # model.add(LSTM(50, input_shape=(X_shape, y_shape), return_sequences = False))
+     # model.add(LeakyReLU(alpha=0.3))
+     # model.add(Dense(1))
+     # model.compile(optimizer ='adam', loss = 'mse')
 
      return model
 
@@ -181,13 +189,18 @@ def model_fun(df, df_test):
    print(f'XDSDD{np.isnan(y_train).sum()}')
    y_train = np.nan_to_num(y_train, nan=0)
 
-   model_history = model.fit(X_train, y_train, epochs = 20, batch_size = 32, validation_split = 0.2)
+   model_history = model.fit(X_train, y_train, epochs = 10, batch_size = 32, validation_split = 0.2)
  
    return model, model_history
 
 
 def evaluate_LSTM_model(model, X_test, y_test):
      y_pred = model.predict(X_test)
+     # print(y_pred)
+     # y_pred = y_pred.reshape(25,31)
+     print(y_test)
+     print(y_pred)
+     print(F'NIEWIARYGONDE{y_pred.shape}')
      print(f'XDSDD{np.isnan(X_test).sum()}')
      y_test = np.nan_to_num(y_test, nan=0)
      # mean_value = np.nanmean(y_test)
