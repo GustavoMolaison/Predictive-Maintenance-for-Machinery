@@ -12,7 +12,7 @@ import tensorflow as tf
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense, LeakyReLU
 from tensorflow.keras.preprocessing.sequence import pad_sequences
-
+from sklearn.model_selection import TimeSeriesSplit
 
 
 if __name__ == '__main__':
@@ -140,6 +140,7 @@ def minmaxscaling_sequences(df, df_test, engines_range = 25):
      # print(scaled_df['unit number'])
            
      def create_sequences(data, engines_num):
+          global timesteps_num
           xs, ys = [], []
           
           for i in range(engines_num):
@@ -154,6 +155,7 @@ def minmaxscaling_sequences(df, df_test, engines_range = 25):
           # print(ys)   
           df_group = np.array(df_test.groupby('unit number')['time'].max().tolist())
           print(df_group)
+          timesteps_num  = df_group.min()
           xs = pad_sequences(xs, maxlen = df_group.min(), padding = 'post', truncating ='post')   
           return np.array(xs), np.array(ys)     
 
@@ -177,21 +179,51 @@ def LSTM_model(X_shape, y_shape):
      return model
 
 
-def model_fun(df, df_test):
+def model_fun(df, df_test, range_var, type = 'classic'):
+   X_train, y_train = minmaxscaling_sequences(df = df, df_test = df_test,  engines_range = range_var)
+
+   if type == 'TimeSerSplit':
+
+     mse_scores = []
+     r2_scores = []
+     tscv = TimeSeriesSplit(n_splits=3)
+     for i in range(len(X_train)):
+        for train_index, test_index in tscv.split(X_train[i]):
+          X_train_fold, X_test_fold = X_train.iloc[train_index], X_train.iloc[test_index]
+          y_train_fold, y_test_fold = y_train[i] 
+
+          # X_train_fold_padded
+        
+          model = LSTM_model(X_train_fold.shape[1], X_train_fold.shape[2])
+
+          model_history = model.fit(X_train_fold, y_train_fold, epochs = 10, batch_size = 32, validation_split = 0.2)
+
+          y_pred_fold = model.predict(X_test_fold)
+
+          mse = mean_squared_error(y_test_fold, y_pred_fold)
+          r2 = r2_score(y_test_fold, y_pred_fold)
+
+          mse_scores.append(mse)
+          r2_scores.append(r2)
    
-   X_train, y_train = minmaxscaling_sequences(df = df, df_test = df_test,  engines_range = 25)
+          print(f'Unit {i} - Fold results:')
+          print(f'  MSE: {mse}')
+          print(f'  R2: {r2}')
+     print(f'Average MSE: {np.mean(mse_scores)}')
+     print(f'Average R2: {np.mean(r2_scores)}')    
+
 
 #    X_train_padded = pad_sequences(X_train, padding='post', maxlen = df['time'].max())
-    
-   model = LSTM_model(X_train.shape[1], X_train.shape[2])
+   if type ==  'classic': 
+     model = LSTM_model(X_train.shape[1], X_train.shape[2])
 
-   print(f'XDSDD{np.isnan(X_train).sum()}')
-   print(f'XDSDD{np.isnan(y_train).sum()}')
-   y_train = np.nan_to_num(y_train, nan=0)
+     print(f'EHmm{np.isnan(X_train).sum()}')
+     print(f'mmmmmmm{np.isnan(y_train).sum()}')
+     y_train = np.nan_to_num(y_train, nan=0)
 
-   model_history = model.fit(X_train, y_train, epochs = 10, batch_size = 32, validation_split = 0.2)
+     model_history = model.fit(X_train, y_train, epochs = 10, batch_size = 32, validation_split = 0.2)
  
-   return model, model_history
+     return model, model_history
 
 
 def evaluate_LSTM_model(model, X_test, y_test):
@@ -221,6 +253,6 @@ def evaluate_LSTM_model(model, X_test, y_test):
      stop = input('press anything to stop')
 
 
-model, model_history = model_fun(df_train1, df_test1)
+model, model_history = model_fun(df_train1, df_test1, 25, type = 'TimeSerSplit')
 X_test, y_test= minmaxscaling_sequences(df = df_test1, df_test = df_test1, engines_range = 25)
 evaluate_LSTM_model(model = model, X_test = X_test, y_test = y_test )
