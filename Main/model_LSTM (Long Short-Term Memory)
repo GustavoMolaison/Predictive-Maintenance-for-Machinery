@@ -142,22 +142,29 @@ def minmaxscaling_sequences(df, df_test, engines_range = 25):
      def create_sequences(data, engines_num):
           global timesteps_num
           xs, ys = [], []
-          
           for i in range(engines_num):
                filt = data['unit number'] == i
                data_filt = data[filt]
                # print(data_filt)
                x = data_filt
                y = data_filt['time'].max()
-               xs.append(x)
+               num_rows = len(x)
+               group_size = 10
+               num_full_groups = num_rows // group_size
+
+               splited_x = x.iloc[:num_full_groups * group_size]
+               group_start = 0
+               x_sample = []
+               for i in range(num_full_groups):
+                  splitted_x = splited_x.iloc[group_start : group_start + group_size]
+                  group_start = group_start + i * group_size
+                  x_sample.append(splited_x) 
+                  x_sample = np.array(x_sample, dtype = object)
+
+               xs.append(x_sample)
                ys.append(y)
-          # print(xs)
-          # print(ys)   
-          df_group = np.array(df_test.groupby('unit number')['time'].max().tolist())
-          print(df_group)
-          timesteps_num  = df_group.min()
-          xs = pad_sequences(xs, maxlen = df_group.min(), padding = 'post', truncating ='post')   
-          return np.array(xs), np.array(ys)     
+          return np.array(xs, dtype = object), np.array(ys, dtype = object)
+
 
      return create_sequences(scaled_df, engines_range)
 
@@ -182,44 +189,47 @@ def LSTM_model(X_shape, y_shape):
 def model_fun(df, df_test, range_var, type = 'classic'):
    X_train, y_train = minmaxscaling_sequences(df = df, df_test = df_test,  engines_range = range_var)
 
-   if type == 'TimeSerSplit':
+#    if type == 'TimeSerSplit':
 
-     mse_scores = []
-     r2_scores = []
-     tscv = TimeSeriesSplit(n_splits=3)
-     for i in range(len(X_train)):
-        for train_index, test_index in tscv.split(X_train[i]):
-          X_train_fold, X_test_fold = X_train.iloc[train_index], X_train.iloc[test_index]
-          y_train_fold, y_test_fold = y_train[i] 
+#      mse_scores = []
+#      r2_scores = []
+#      tscv = TimeSeriesSplit(n_splits=3)
+#      for i in range(len(X_train)):
+#         for train_index, test_index in tscv.split(X_train[i]):
+#           X_train_fold, X_test_fold = X_train.iloc[train_index], X_train.iloc[test_index]
+#           y_train_fold, y_test_fold = y_train[i] 
 
-          # X_train_fold_padded
+#           # X_train_fold_padded
         
-          model = LSTM_model(X_train_fold.shape[1], X_train_fold.shape[2])
+#           model = LSTM_model(X_train_fold.shape[1], X_train_fold.shape[2])
 
-          model_history = model.fit(X_train_fold, y_train_fold, epochs = 10, batch_size = 32, validation_split = 0.2)
+#           model_history = model.fit(X_train_fold, y_train_fold, epochs = 10, batch_size = 32, validation_split = 0.2)
 
-          y_pred_fold = model.predict(X_test_fold)
+#           y_pred_fold = model.predict(X_test_fold)
 
-          mse = mean_squared_error(y_test_fold, y_pred_fold)
-          r2 = r2_score(y_test_fold, y_pred_fold)
+#           mse = mean_squared_error(y_test_fold, y_pred_fold)
+#           r2 = r2_score(y_test_fold, y_pred_fold)
 
-          mse_scores.append(mse)
-          r2_scores.append(r2)
+#           mse_scores.append(mse)
+#           r2_scores.append(r2)
    
-          print(f'Unit {i} - Fold results:')
-          print(f'  MSE: {mse}')
-          print(f'  R2: {r2}')
-     print(f'Average MSE: {np.mean(mse_scores)}')
-     print(f'Average R2: {np.mean(r2_scores)}')    
+#           print(f'Unit {i} - Fold results:')
+#           print(f'  MSE: {mse}')
+#           print(f'  R2: {r2}')
+#      print(f'Average MSE: {np.mean(mse_scores)}')
+#      print(f'Average R2: {np.mean(r2_scores)}')    
 
 
 #    X_train_padded = pad_sequences(X_train, padding='post', maxlen = df['time'].max())
    if type ==  'classic': 
-     model = LSTM_model(X_train.shape[1], X_train.shape[2])
+     print(X_train.shape)
+     sample_shape = X_train[0][0]
+     sample_shape = np.array(sample_shape)
+     model = LSTM_model(sample_shape.shape[1], sample_shape.shape[2])
 
      print(f'EHmm{np.isnan(X_train).sum()}')
      print(f'mmmmmmm{np.isnan(y_train).sum()}')
-     y_train = np.nan_to_num(y_train, nan=0)
+     # y_train = np.nan_to_num(y_train, nan=0)
 
      model_history = model.fit(X_train, y_train, epochs = 10, batch_size = 32, validation_split = 0.2)
  
@@ -253,6 +263,6 @@ def evaluate_LSTM_model(model, X_test, y_test):
      stop = input('press anything to stop')
 
 
-model, model_history = model_fun(df_train1, df_test1, 25, type = 'TimeSerSplit')
+model, model_history = model_fun(df_train1, df_test1, 25, type = 'classic')
 X_test, y_test= minmaxscaling_sequences(df = df_test1, df_test = df_test1, engines_range = 25)
 evaluate_LSTM_model(model = model, X_test = X_test, y_test = y_test )
