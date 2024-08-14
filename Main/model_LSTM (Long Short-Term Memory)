@@ -126,7 +126,7 @@ def pred_and_eve(model, test_list):
 
 def minmaxscaling_sequences(df, df_test, engines_range = 25):
      df = df.bfill()
-     # print(np.array(df.groupby('unit number')['time'].max().tolist()))
+    
      scaler = MinMaxScaler(feature_range=(0,1))
      features = df.columns.tolist()
      features.remove('unit number')
@@ -135,35 +135,51 @@ def minmaxscaling_sequences(df, df_test, engines_range = 25):
      scaled_df_fake = pd.DataFrame(scaled_data)
      scaled_df = pd.concat([df['unit number'], df['time'],  scaled_df_fake], axis=1)
      scaled_df.columns = df.columns
-     # print(scaled_df)
-     # print(scaled_df.columns)
-     # print(scaled_df['unit number'])
+    
            
      def create_sequences(data, engines_num):
-          global timesteps_num
+          
           xs, ys = [], []
-          for i in range(engines_num):
-               filt = data['unit number'] == i
-               data_filt = data[filt]
-               # print(data_filt)
-               x = data_filt
-               y = data_filt['time'].max()
-               num_rows = len(x)
-               group_size = 10
-               num_full_groups = num_rows // group_size
+          print(data['rolling_mean_sensor 13'])
+          for engine_id in range(engines_num, 1):
+            # Filter data for the current engine
+            filt = data['unit number'] == engine_id
+            data_filt = data[filt]
+            print(f'DATAFILT{data_filt}')
+            x_sample = []
+            x = data_filt
+            y = data_filt['time'].max()  # Assuming 'time' column exists and contains relevant data
+        
+            num_rows = len(x)
+            group_size = 10
+            num_full_groups = num_rows // group_size
 
-               splited_x = x.iloc[:num_full_groups * group_size]
-               group_start = 0
-               x_sample = []
-               for i in range(num_full_groups):
-                  splitted_x = splited_x.iloc[group_start : group_start + group_size]
-                  group_start = group_start + i * group_size
-                  x_sample.append(splited_x) 
-                  x_sample = np.array(x_sample, dtype = object)
+            print(f"Number of rows: {num_rows}")
+            print(f"Number of full groups: {num_full_groups}")
+            print(f'XXXXXXXXXXXXXXXX{x}')
+          #  BLAD TUTTAJATJ
+            # Select only the rows that fit into full groups
+            splited_x = x.iloc[:num_full_groups * group_size]
 
-               xs.append(x_sample)
-               ys.append(y)
-          return np.array(xs, dtype = object), np.array(ys, dtype = object)
+            print(f"Splitted data (x):")
+            print(splited_x)
+        
+            group_start = 0
+            for i in range(num_full_groups):
+               splited_x2 = splited_x.iloc[group_start : group_start + group_size]
+               print(f'DXDDDDDDDDDDDDDDDDDDDDDD{splited_x2}')
+               print(x_sample[0])
+               x_sample.append(np.array(splited_x2))
+               group_start += group_size  # Move to the start of the next group
+
+            print(f"x_sample for engine {engine_id}:")
+            print(x_sample)
+            xs.append(x_sample)
+            print(f'jak{x_sample}')
+            print(x_sample[0])  # Append the list of samples for this engine
+            ys.append(y)         # Append the maximum time for this engine
+    
+          return xs, ys
 
 
      return create_sequences(scaled_df, engines_range)
@@ -222,8 +238,9 @@ def model_fun(df, df_test, range_var, type = 'classic'):
 
 #    X_train_padded = pad_sequences(X_train, padding='post', maxlen = df['time'].max())
    if type ==  'classic': 
-     print(X_train.shape)
-     sample_shape = X_train[0][0]
+     sample_shape = X_train[0]
+     print(sample_shape)
+     sample_shape = sample_shape[0]
      sample_shape = np.array(sample_shape)
      model = LSTM_model(sample_shape.shape[1], sample_shape.shape[2])
 
@@ -263,6 +280,6 @@ def evaluate_LSTM_model(model, X_test, y_test):
      stop = input('press anything to stop')
 
 
-model, model_history = model_fun(df_train1, df_test1, 25, type = 'classic')
+model, model_history = model_fun(df_train1, df_test1, range_var = 25, type = 'classic')
 X_test, y_test= minmaxscaling_sequences(df = df_test1, df_test = df_test1, engines_range = 25)
 evaluate_LSTM_model(model = model, X_test = X_test, y_test = y_test )
