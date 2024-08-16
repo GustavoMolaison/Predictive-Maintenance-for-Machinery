@@ -124,7 +124,7 @@ def pred_and_eve(model, test_list):
 
     return y_pred_list
 
-def minmaxscaling_sequences(df, df_test, engines_range = 25):
+def minmaxscaling_sequences(df, df_test, engines_range = 26):
      df = df.bfill()
     
      scaler = MinMaxScaler(feature_range=(0,1))
@@ -140,9 +140,10 @@ def minmaxscaling_sequences(df, df_test, engines_range = 25):
      def create_sequences(data, engines_num):
           
           xs, ys = [], []
-          print(data['rolling_mean_sensor 13'])
-          for engine_id in range(engines_num, 1):
+          print(f'DATATATATATATATATATATATA{data}')
+          for engine_id in range(1, engines_num):
             # Filter data for the current engine
+            print(F'ENGINE ID{engine_id}')
             filt = data['unit number'] == engine_id
             data_filt = data[filt]
             print(f'DATAFILT{data_filt}')
@@ -168,7 +169,7 @@ def minmaxscaling_sequences(df, df_test, engines_range = 25):
             for i in range(num_full_groups):
                splited_x2 = splited_x.iloc[group_start : group_start + group_size]
                print(f'DXDDDDDDDDDDDDDDDDDDDDDD{splited_x2}')
-               print(x_sample[0])
+               # print(x_sample[0])
                x_sample.append(np.array(splited_x2))
                group_start += group_size  # Move to the start of the next group
 
@@ -182,7 +183,7 @@ def minmaxscaling_sequences(df, df_test, engines_range = 25):
           return xs, ys
 
 
-     return create_sequences(scaled_df, engines_range)
+     return create_sequences(scaled_df, engines_num = engines_range)
 
 # ERROR HERE############################################################################################################################
 def LSTM_model(X_shape, y_shape):
@@ -203,7 +204,7 @@ def LSTM_model(X_shape, y_shape):
 
 
 def model_fun(df, df_test, range_var, type = 'classic'):
-   X_train, y_train = minmaxscaling_sequences(df = df, df_test = df_test,  engines_range = range_var)
+   X_train, y_train = minmaxscaling_sequences(df = df, df_test = df_test)
 
 #    if type == 'TimeSerSplit':
 
@@ -238,17 +239,17 @@ def model_fun(df, df_test, range_var, type = 'classic'):
 
 #    X_train_padded = pad_sequences(X_train, padding='post', maxlen = df['time'].max())
    if type ==  'classic': 
-     sample_shape = X_train[0]
-     print(sample_shape)
-     sample_shape = sample_shape[0]
-     sample_shape = np.array(sample_shape)
-     model = LSTM_model(sample_shape.shape[1], sample_shape.shape[2])
+     sample_shape = np.array(X_train[0][0])
+     print(sample_shape.shape)
+     # sample_shape = sample_shape[0]
+     # sample_shape = np.array(sample_shape)
+     model = LSTM_model(sample_shape.shape[0], sample_shape.shape[1])
 
-     print(f'EHmm{np.isnan(X_train).sum()}')
-     print(f'mmmmmmm{np.isnan(y_train).sum()}')
+     # print(f'EHmm{np.isnan(X_train).sum()}')
+     # print(f'mmmmmmm{np.isnan(y_train).sum()}')
      # y_train = np.nan_to_num(y_train, nan=0)
 
-     model_history = model.fit(X_train, y_train, epochs = 10, batch_size = 32, validation_split = 0.2)
+     model_history = model.fit(X_train, y_train, epochs = 10, batch_size = 32)
  
      return model, model_history
 
