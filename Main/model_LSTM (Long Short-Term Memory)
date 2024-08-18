@@ -139,7 +139,9 @@ def minmaxscaling_sequences(df, df_test, engines_range = 26):
            
      def create_sequences(data, engines_num):
           
-          xs, ys = [], []
+          xs = np.ones([148])
+          ys = np.ones([1])
+          
           print(f'DATATATATATATATATATATATA{data}')
           for engine_id in range(1, engines_num):
             # Filter data for the current engine
@@ -147,13 +149,16 @@ def minmaxscaling_sequences(df, df_test, engines_range = 26):
             filt = data['unit number'] == engine_id
             data_filt = data[filt]
             print(f'DATAFILT{data_filt}')
-            x_sample = []
+            
             x = data_filt
             y = data_filt['time'].max()  # Assuming 'time' column exists and contains relevant data
-        
+            y = np.array([y])
+            y = y[np.newaxis, :]
+
             num_rows = len(x)
             group_size = 10
             num_full_groups = num_rows // group_size
+            x_sample = np.ones([148])
 
             print(f"Number of rows: {num_rows}")
             print(f"Number of full groups: {num_full_groups}")
@@ -170,15 +175,15 @@ def minmaxscaling_sequences(df, df_test, engines_range = 26):
                splited_x2 = splited_x.iloc[group_start : group_start + group_size]
                print(f'DXDDDDDDDDDDDDDDDDDDDDDD{splited_x2}')
                # print(x_sample[0])
-               x_sample.append(np.array(splited_x2))
+               x_sample = np.vstack((x_sample, splited_x2))
                group_start += group_size  # Move to the start of the next group
 
             print(f"x_sample for engine {engine_id}:")
             print(x_sample)
-            xs.append(x_sample)
+            xs = np.vstack((xs, x_sample))
             print(f'jak{x_sample}')
             print(x_sample[0])  # Append the list of samples for this engine
-            ys.append(y)         # Append the maximum time for this engine
+            ys = np.vstack([ys, y])         # Append the maximum time for this engine
     
           return xs, ys
 
@@ -189,7 +194,8 @@ def minmaxscaling_sequences(df, df_test, engines_range = 26):
 def LSTM_model(X_shape, y_shape):
      # RELU
      model = Sequential()
-     model.add(LSTM(50, activation = 'relu', input_shape=(X_shape, y_shape)))
+     model.add(LSTM(50, activation = 'relu', input_shape=(X_shape, y_shape), statefull = True))
+     model.add(LSTM(50, stateful = True))
      model.add(Dense(1))
      model.compile(optimizer ='adam', loss = 'mse')
 
@@ -240,16 +246,18 @@ def model_fun(df, df_test, range_var, type = 'classic'):
 #    X_train_padded = pad_sequences(X_train, padding='post', maxlen = df['time'].max())
    if type ==  'classic': 
      sample_shape = np.array(X_train[0][0])
+     n_samples, n_features = sample_shape.shape
      print(sample_shape.shape)
      # sample_shape = sample_shape[0]
      # sample_shape = np.array(sample_shape)
-     model = LSTM_model(sample_shape.shape[0], sample_shape.shape[1])
+     model = LSTM_model(n_samples, n_features)
 
      # print(f'EHmm{np.isnan(X_train).sum()}')
      # print(f'mmmmmmm{np.isnan(y_train).sum()}')
      # y_train = np.nan_to_num(y_train, nan=0)
-
-     model_history = model.fit(X_train, y_train, epochs = 10, batch_size = 32)
+     for sample_x, sample_y in zip(X_train, y_train):
+                 for timesteps_x, in sample_x:
+                    model_history = model.fit(timesteps_x, sample_y, epochs = 10, batch_size = 32)
  
      return model, model_history
 
