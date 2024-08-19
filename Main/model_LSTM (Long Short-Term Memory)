@@ -139,7 +139,7 @@ def minmaxscaling_sequences(df, df_test, engines_range = 26):
            
      def create_sequences(data, engines_num):
           
-          xs = np.ones([148])
+          xs = np.ones([1, 10, 148])
           ys = np.ones([1])
           # xs = np.array([])
           # ys = np.array([])
@@ -162,12 +162,12 @@ def minmaxscaling_sequences(df, df_test, engines_range = 26):
             num_rows = len(x)
             group_size = 10
             num_full_groups = num_rows // group_size
-            x_sample = np.ones([148])
+            x_sample = np.ones([1, 10, 148])
 
             print(f"Number of rows: {num_rows}")
             print(f"Number of full groups: {num_full_groups}")
             print(f'XXXXXXXXXXXXXXXX{x}')
-          #  BLAD TUTTAJATJ
+          #  
             # Select only the rows that fit into full groups
             splited_x = x.iloc[:num_full_groups * group_size]
 
@@ -177,13 +177,16 @@ def minmaxscaling_sequences(df, df_test, engines_range = 26):
             group_start = 0
             for i in range(num_full_groups):
                splited_x2 = splited_x.iloc[group_start : group_start + group_size]
-               print(f'DXDDDDDDDDDDDDDDDDDDDDDD{splited_x2}')
-               # print(x_sample[0])
+               splited_x2 = np.array(splited_x2)
+               splited_x2.reshape(1, 10, 148)
                x_sample = np.vstack((x_sample, splited_x2))
+               if i == 0:
+                    x_sample = np.delete(x_sample, 0, axis = 0)
                group_start += group_size  # Move to the start of the next group
 
             print(f"x_sample for engine {engine_id}:")
             print(x_sample)
+            x_sample.reshape(1, num_full_groups, 10, 148)
             xs = np.vstack((xs, x_sample))
             print(f'jak{x_sample}')
             print(x_sample[0])  # Append the list of samples for this engine
@@ -254,6 +257,7 @@ def model_fun(df, df_test, range_var, type = 'classic'):
    if type ==  'classic': 
      sample_shape = np.array(X_train[0][0])
      print(f'WODADADADADADADADADAD{X_train[0]}')
+     print(f'{X_train[0].shape}')
      n_samples, n_features = sample_shape.shape
      print(sample_shape.shape)
      # sample_shape = sample_shape[0]

@@ -1,22 +1,13 @@
 import numpy as np
-# xd = []
-# xdd = []
-# papa =(np.array([[2,2,2],
-#                      [1,1,1]]))
-# xdd.append(papa)
-# patrz = xdd
-# xd.append(patrz)
-# xdd.clear()
-# print(xd[0][0])
-# list1 = []
-# list2 = []
-# for g in range(10):
-#   list1 = []
-#   for i in range(10):
-#     num = i
-#     list1.append(num)
-#   list2.append(list1)
-# print(list2)    
-y = 20
-for x in range(1, y):
-    print(x)
+# array1 = np.array([[1,1,1],
+#                    [2,2,2],
+#                    [3,3,3]])
+# print(array1)
+
+# array1 = np.delete(array1, 0, axis = 0)
+# print(f'new array{array1}')
+# ys = np.delete(ys, 0, axis = 0)
+
+array = np.ones([1, 5, 10])
+array = np.vstack((array, np.ones([1, 5, 10]))) 
+print(array)
