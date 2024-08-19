@@ -141,6 +141,10 @@ def minmaxscaling_sequences(df, df_test, engines_range = 26):
           
           xs = np.ones([148])
           ys = np.ones([1])
+          # xs = np.array([])
+          # ys = np.array([])
+          # xs = xs.reshape(148)
+          # ys = ys.reshape(1)
           
           print(f'DATATATATATATATATATATATA{data}')
           for engine_id in range(1, engines_num):
@@ -184,7 +188,10 @@ def minmaxscaling_sequences(df, df_test, engines_range = 26):
             print(f'jak{x_sample}')
             print(x_sample[0])  # Append the list of samples for this engine
             ys = np.vstack([ys, y])         # Append the maximum time for this engine
-    
+          
+          print(f'XSXSXSXSSXS{xs}')
+          xs = np.delete(xs, 0, axis = 0)
+          ys = np.delete(ys, 0, axis = 0)
           return xs, ys
 
 
@@ -246,6 +253,7 @@ def model_fun(df, df_test, range_var, type = 'classic'):
 #    X_train_padded = pad_sequences(X_train, padding='post', maxlen = df['time'].max())
    if type ==  'classic': 
      sample_shape = np.array(X_train[0][0])
+     print(f'WODADADADADADADADADAD{X_train[0]}')
      n_samples, n_features = sample_shape.shape
      print(sample_shape.shape)
      # sample_shape = sample_shape[0]
