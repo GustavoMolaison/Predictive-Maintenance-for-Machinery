@@ -139,7 +139,8 @@ def minmaxscaling_sequences(df, df_test, engines_range = 26):
            
      def create_sequences(data, engines_num):
           
-          xs = np.ones([1, 10, 148])
+          # xs = np.ones([ 1, 10, 148])
+          xs = []
           ys = np.ones([1])
           # xs = np.array([])
           # ys = np.array([])
@@ -162,11 +163,15 @@ def minmaxscaling_sequences(df, df_test, engines_range = 26):
             num_rows = len(x)
             group_size = 10
             num_full_groups = num_rows // group_size
+            while num_full_groups % 5 != 0:
+                  num_full_groups =  num_full_groups - 1 
+
             x_sample = np.ones([1, 10, 148])
+            splited_x5 = np.ones([1, 10, 148])
 
             print(f"Number of rows: {num_rows}")
             print(f"Number of full groups: {num_full_groups}")
-            print(f'XXXXXXXXXXXXXXXX{x}')
+            
           #  
             # Select only the rows that fit into full groups
             splited_x = x.iloc[:num_full_groups * group_size]
@@ -176,9 +181,11 @@ def minmaxscaling_sequences(df, df_test, engines_range = 26):
         
             group_start = 0
             for i in range(num_full_groups):
+               # DOBRZE WSZYSTKO TU
                splited_x2 = splited_x.iloc[group_start : group_start + group_size]
                splited_x2 = np.array(splited_x2)
-               splited_x2.reshape(1, 10, 148)
+               splited_x2 = splited_x2.reshape([1, 10, 148])
+               splited_x5 = np.vstack((splited_x2))
                x_sample = np.vstack((x_sample, splited_x2))
                if i == 0:
                     x_sample = np.delete(x_sample, 0, axis = 0)
@@ -186,14 +193,14 @@ def minmaxscaling_sequences(df, df_test, engines_range = 26):
 
             print(f"x_sample for engine {engine_id}:")
             print(x_sample)
-            x_sample.reshape(1, num_full_groups, 10, 148)
-            xs = np.vstack((xs, x_sample))
-            print(f'jak{x_sample}')
-            print(x_sample[0])  # Append the list of samples for this engine
+          #   x_sample = x_sample.reshape(1, num_full_groups, 10, 148)
+          #   x_sample = x_sample.reshape(1, 5, 10, 148 )
+            xs.append(x_sample)
+              # Append the list of samples for this engine
             ys = np.vstack([ys, y])         # Append the maximum time for this engine
           
-          print(f'XSXSXSXSSXS{xs}')
-          xs = np.delete(xs, 0, axis = 0)
+          
+          # xs = np.delete(xs, 0, axis = 0)
           ys = np.delete(ys, 0, axis = 0)
           return xs, ys
 
@@ -204,8 +211,8 @@ def minmaxscaling_sequences(df, df_test, engines_range = 26):
 def LSTM_model(X_shape, y_shape):
      # RELU
      model = Sequential()
-     model.add(LSTM(50, activation = 'relu', input_shape=(X_shape, y_shape), statefull = True))
-     model.add(LSTM(50, stateful = True))
+     model.add(LSTM(50, activation = 'relu', batch_input_shape=(5, X_shape, y_shape), stateful = True))
+     # model.add(LSTM(50, stateful = True))
      model.add(Dense(1))
      model.compile(optimizer ='adam', loss = 'mse')
 
@@ -256,8 +263,8 @@ def model_fun(df, df_test, range_var, type = 'classic'):
 #    X_train_padded = pad_sequences(X_train, padding='post', maxlen = df['time'].max())
    if type ==  'classic': 
      sample_shape = np.array(X_train[0][0])
-     print(f'WODADADADADADADADADAD{X_train[0]}')
-     print(f'{X_train[0].shape}')
+     
+
      n_samples, n_features = sample_shape.shape
      print(sample_shape.shape)
      # sample_shape = sample_shape[0]
