@@ -212,7 +212,6 @@ def LSTM_model(X_shape, y_shape):
      # RELU
      model = Sequential()
      model.add(LSTM(50, activation = 'relu', batch_input_shape=(5, X_shape, y_shape), stateful = True))
-     # model.add(LSTM(50, stateful = True))
      model.add(Dense(1))
      model.compile(optimizer ='adam', loss = 'mse')
 
@@ -275,7 +274,8 @@ def model_fun(df, df_test, range_var, type = 'classic'):
      # print(f'mmmmmmm{np.isnan(y_train).sum()}')
      # y_train = np.nan_to_num(y_train, nan=0)
      for sample_x, sample_y in zip(X_train, y_train):
-                 for timesteps_x, in sample_x:
+                 print(sample_x)
+                 for timesteps_x in sample_x[0]:
                     model_history = model.fit(timesteps_x, sample_y, epochs = 10, batch_size = 32)
  
      return model, model_history
