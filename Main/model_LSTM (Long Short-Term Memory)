@@ -139,13 +139,10 @@ def minmaxscaling_sequences(df, df_test, engines_range = 26):
            
      def create_sequences(data, engines_num):
           
-          # xs = np.ones([ 1, 10, 148])
+        
           xs = []
-          ys = np.ones([1])
-          # xs = np.array([])
-          # ys = np.array([])
-          # xs = xs.reshape(148)
-          # ys = ys.reshape(1)
+          ys = []
+        
           
           print(f'DATATATATATATATATATATATA{data}')
           for engine_id in range(1, engines_num):
@@ -156,7 +153,7 @@ def minmaxscaling_sequences(df, df_test, engines_range = 26):
             print(f'DATAFILT{data_filt}')
             
             x = data_filt
-            y = data_filt['time'].max()  # Assuming 'time' column exists and contains relevant data
+            y = data_filt['time'].max() 
             y = np.array([y])
             y = y[np.newaxis, :]
 
@@ -166,8 +163,10 @@ def minmaxscaling_sequences(df, df_test, engines_range = 26):
             while num_full_groups % 5 != 0:
                   num_full_groups =  num_full_groups - 1 
 
-            x_sample = np.ones([1, 10, 148])
-            splited_x5 = np.ones([1, 10, 148])
+                 
+
+            x_sample = []
+            
 
             print(f"Number of rows: {num_rows}")
             print(f"Number of full groups: {num_full_groups}")
@@ -180,28 +179,34 @@ def minmaxscaling_sequences(df, df_test, engines_range = 26):
             print(splited_x)
         
             group_start = 0
+          
             for i in range(num_full_groups):
-               # DOBRZE WSZYSTKO TU
+               
                splited_x2 = splited_x.iloc[group_start : group_start + group_size]
                splited_x2 = np.array(splited_x2)
                splited_x2 = splited_x2.reshape([1, 10, 148])
-               splited_x5 = np.vstack((splited_x2))
-               x_sample = np.vstack((x_sample, splited_x2))
-               if i == 0:
-                    x_sample = np.delete(x_sample, 0, axis = 0)
+               x_sample.append(splited_x2)
+
+               if len(x_sample) == 5:
+                   xs.append(np.vstack(x_sample))
+                   x_sample = []
+                   ys.append(np.array([y] * 5))
+
+               # if x_sample.shape == (2,10,148):
+               #      x_sample = np.delete(x_sample, 0, axis = 0)
+
                group_start += group_size  # Move to the start of the next group
 
             print(f"x_sample for engine {engine_id}:")
             print(x_sample)
-          #   x_sample = x_sample.reshape(1, num_full_groups, 10, 148)
-          #   x_sample = x_sample.reshape(1, 5, 10, 148 )
-            xs.append(x_sample)
+        
+            
               # Append the list of samples for this engine
-            ys = np.vstack([ys, y])         # Append the maximum time for this engine
+                    # Append the maximum time for this engine
           
           
-          # xs = np.delete(xs, 0, axis = 0)
-          ys = np.delete(ys, 0, axis = 0)
+          
+          
           return xs, ys
 
 
@@ -262,21 +267,19 @@ def model_fun(df, df_test, range_var, type = 'classic'):
 #    X_train_padded = pad_sequences(X_train, padding='post', maxlen = df['time'].max())
    if type ==  'classic': 
      sample_shape = np.array(X_train[0][0])
-     
-
+     # sample_shape.shape its shape of data SHAPE
+     print(sample_shape.shape)
      n_samples, n_features = sample_shape.shape
      print(sample_shape.shape)
-     # sample_shape = sample_shape[0]
-     # sample_shape = np.array(sample_shape)
+    
      model = LSTM_model(n_samples, n_features)
 
-     # print(f'EHmm{np.isnan(X_train).sum()}')
-     # print(f'mmmmmmm{np.isnan(y_train).sum()}')
-     # y_train = np.nan_to_num(y_train, nan=0)
-     for sample_x, sample_y in zip(X_train, y_train):
-                 print(sample_x)
-                 for timesteps_x in sample_x[0]:
-                    model_history = model.fit(timesteps_x, sample_y, epochs = 10, batch_size = 32)
+     # X_train is a list with arrays that consist other arrays.
+     # y_train is a list that consist 
+
+     
+     
+     model_history = model.fit(X_train[0], y_train[0], epochs = 10)
  
      return model, model_history
 
@@ -309,5 +312,5 @@ def evaluate_LSTM_model(model, X_test, y_test):
 
 
 model, model_history = model_fun(df_train1, df_test1, range_var = 25, type = 'classic')
-X_test, y_test= minmaxscaling_sequences(df = df_test1, df_test = df_test1, engines_range = 25)
+X_test, y_test= minmaxscaling_sequences(df = df_test1, df_test = df_test1)
 evaluate_LSTM_model(model = model, X_test = X_test, y_test = y_test )
