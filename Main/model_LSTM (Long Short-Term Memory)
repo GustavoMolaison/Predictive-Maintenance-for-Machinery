@@ -288,18 +288,23 @@ def evaluate_LSTM_model(model, X_test):
      y_pred = model.predict(X_test[0])
     
      
-     print(y_pred)
+    
      print(F'NIEWIARYGONDE{y_pred.shape}')
      print(f'X_test{np.isnan(X_test[0]).sum()}')
      print(f'y_pred{np.isnan(y_pred[0]).sum()}')
      
      fig, ax = plt.subplots()
-     xd = [1,22,3,4,5]
      # Plot the bar
-     ax.bar('Prediction', xd, color='blue')
+     y_pred = y_pred.reshape(5)
+     y_pred = y_pred.round()
+     print(y_pred)
+     x = np.array([1,2,3,4,5])
+     ax.hist(x = y_pred)
+
+     
 
      # Label the plot
-     ax.set_ylabel('Predicted Value')
+     # ax.set_ylabel('Predicted Value')
      ax.set_title('Single Predicted Value')
 
      # Show the plot
