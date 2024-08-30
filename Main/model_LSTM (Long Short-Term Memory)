@@ -271,7 +271,7 @@ def model_fun(df, df_test, range_var, type = 'stateful'):
      print(sample_shape.shape)
      n_samples, n_features = sample_shape.shape
      print(sample_shape.shape)
-    
+     print(kielubas)
      model = LSTM_model(n_samples, n_features)
 
      # X_train is a list with arrays that consist other arrays.
