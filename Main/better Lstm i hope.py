@@ -112,8 +112,8 @@ def model_fun(df, df_test, range_var, type = 'stateful'):
     
      statefull_model = LSTM_model(10, 148)
  
-     epochs_num = 3
-     for epoch in list(range(epochs_num)):
+     epochs_num =1
+     for epoch in list(range(2)):
         statefull_model_history = statefull_model.fit(engine_data_generator(df,
                                                       test = False,
                                                       batch_size =1,
@@ -128,7 +128,7 @@ def model_fun(df, df_test, range_var, type = 'stateful'):
 
 def evaluate_LSTM_model(model, X_test):
      y_pred = model.predict(engine_data_generator(X_test,
-                                                      test = False,
+                                                      test = True,
                                                       batch_size =1,
                                                       seq_len = 10,
                                                       epochs = 10))
