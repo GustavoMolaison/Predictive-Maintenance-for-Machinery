@@ -76,14 +76,15 @@ def engine_data_generator(df, test = False, batch_size =1, seq_len = 10, engines
             
             if test == False:
                 label_y = (df['time'] == i).max()
-
+                label_data = np.array([[label_y] * seq_len]).reshape(batch_size, seq_len)
 
             batch_data = np.array(df_batch).reshape((batch_size, seq_len, len(df.columns)))        
-            label_data = np.array([[label_y] * seq_len]).reshape(batch_size, seq_len)
             
-
-            yield batch_data, label_data
-         
+            
+            if test == False:
+              yield batch_data, label_data
+            if test == True:
+              yield batch_data
         statefull_model.reset_states()
 
 
@@ -131,7 +132,7 @@ def evaluate_LSTM_model(model, X_test):
                                                       test = True,
                                                       batch_size =1,
                                                       seq_len = 10,
-                                                      epochs = 10))
+                                                      epochs = 1))
     
      
     
