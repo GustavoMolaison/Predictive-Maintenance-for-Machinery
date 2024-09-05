@@ -113,7 +113,7 @@ def model_fun(df, df_test, range_var, type = 'stateful'):
     
      statefull_model = LSTM_model(10, 148)
  
-     epochs_num =1
+     epochs_num =2
      for epoch in list(range(2)):
         statefull_model_history = statefull_model.fit(engine_data_generator(df,
                                                       test = False,
