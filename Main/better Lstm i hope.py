@@ -92,7 +92,7 @@ def engine_data_generator(df, test = False, batch_size =1, seq_len = 10, engines
 def LSTM_model(X_shape, y_shape):
      # RELU
      model = Sequential()
-     model.add(LSTM(50, activation = 'relu', batch_input_shape=(1, X_shape, y_shape), stateful = True))
+     model.add(LSTM(50, stateful = True, activation = 'relu', batch_input_shape=(1, X_shape, y_shape)))
      model.add(Dense(1))
      model.compile(optimizer ='adam', loss = 'mse')
 
